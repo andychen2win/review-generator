@@ -15,16 +15,39 @@
     <button onclick="generateNew()">换一条</button>
 
     <script>
-        // 调用Coze API生成评价（替换 YOUR_COZE_API_URL 为你的真实API地址）
+        // 调用 Coze API 生成评价
         async function generateReview() {
             try {
-                const response = await fetch('YOUR_COZE_API_URL', {
+                // 调用 Coze API 获取评价内容
+                const response = await fetch('https://api.coze.cn/v3/chat?', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: "生成一条自然真实的商户评价" })
+                    headers: { 
+                        'Authorization': 'Bearer pat_Mx71xvPeycpOSy5ZSuQzcTDEv8yxF3RHS3fq3Opu6Fm2B0HdBhvZsup8KTqmyNxh', 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({
+                        "bot_id": "7464161709042450447",
+                        "user_id": "user_123",
+                        "stream": false,
+                        "auto_save_history": true,
+                        "additional_messages": [
+                            {
+                                "role": "user",
+                                "content": "生成一条自然真实的商户评价",
+                                "content_type": "text"
+                            }
+                        ]
+                    })
                 });
+                
+                // 检查响应并获取数据
                 const data = await response.json();
-                document.getElementById('review-text').innerText = data.review;
+                if (data && data.data && data.data.answer) {
+                    // 将生成的评价显示到页面
+                    document.getElementById('review-text').innerText = data.data.answer;
+                } else {
+                    document.getElementById('review-text').innerText = "生成失败，请稍后重试！";
+                }
             } catch (error) {
                 document.getElementById('review-text').innerText = "生成失败，请稍后重试！";
             }
