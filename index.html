@@ -15,40 +15,179 @@
     <button onclick="generateNew()">换一条</button>
 
     <script>
-        // 调用 Coze API 生成评价
-        async function generateReview() {
+        // 配置参数
+        const API_TOKEN = "pat_bG62pnXg3ytvYA40Xfsfj0gzRSorwSodmLb3GgxlTKzKF73FQQaE8fWVZvUetEQv";
+        const BOT_ID = "7464161709042450447";  // 请替换为你的实际 bot id
+        const USER_ID = "demo";        // 可根据需要修改
+
+        // 全局保存会话ID
+        let conversation_id = null;
+
+        // 发起会话（调用 https://api.coze.cn/v1/conversation/create ）
+        async function initiateConversation() {
+            const url = "https://api.coze.cn/v1/conversation/create";
+            const headers = {
+                "Authorization": "Bearer " + API_TOKEN,
+                "Content-Type": "application/json"
+            };
             try {
-                // 调用 Coze API 获取评价内容
-                const response = await fetch('https://api.coze.cn/v3/chat?', {
-                    method: 'POST',
-                    headers: { 
-                        'Authorization': 'Bearer pat_Mx71xvPeycpOSy5ZSuQzcTDEv8yxF3RHS3fq3Opu6Fm2B0HdBhvZsup8KTqmyNxh', 
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify({
-                        "bot_id": "7464161709042450447",
-                        "user_id": "user_123",
-                        "stream": false,
-                        "auto_save_history": true,
-                        "additional_messages": [
-                            {
-                                "role": "user",
-                                "content": "生成一条自然真实的商户评价",
-                                "content_type": "text"
-                            }
-                        ]
-                    })
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: headers
                 });
-                
-                // 检查响应并获取数据
                 const data = await response.json();
-                if (data && data.data && data.data.answer) {
-                    // 将生成的评价显示到页面
-                    document.getElementById('review-text').innerText = data.data.answer;
-                } else {
-                    document.getElementById('review-text').innerText = "生成失败，请稍后重试！";
+                if (data.code !== 0) {
+                    console.error("会话初始化失败：" + data.msg);
+                    return null;
                 }
-            } catch (error) {
+                conversation_id = data.data.id;
+                console.log("成功初始化会话，conversation_id =", conversation_id);
+                return conversation_id;
+            } catch (e) {
+                console.error("会话初始化异常：", e);
+                return null;
+            }
+        }
+
+        // 发起对话，返回 chat_id
+        async function startChat() {
+            if (!conversation_id) {
+                conversation_id = await initiateConversation();
+                if (!conversation_id) {
+                    return null;
+                }
+            }
+            const url = `https://api.coze.cn/v3/chat?conversation_id=${conversation_id}`;
+            const headers = {
+                "Authorization": "Bearer " + API_TOKEN,
+                "Content-Type": "application/json"
+            };
+            const payload = {
+                "bot_id": BOT_ID,
+                "user_id": USER_ID,
+                "stream": false,
+                "auto_save_history": true,
+                "additional_messages": [
+                    {
+                        "role": "user",
+                        "content": "生成一条自然真实的商户评价",
+                        "content_type": "text"
+                    }
+                ]
+            };
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (data.code !== 0) {
+                    console.error("发起对话失败：" + data.msg);
+                    // 如果提示“Conversation occupied”，重新初始化会话
+                    if (data.msg && data.msg.indexOf("Conversation occupied") !== -1) {
+                        conversation_id = await initiateConversation();
+                    }
+                    return null;
+                }
+                const chat_id = data.data.id;
+                console.log("成功发起对话，chat_id =", chat_id);
+                return chat_id;
+            } catch (e) {
+                console.error("发起对话异常：", e);
+                return null;
+            }
+        }
+
+        // 轮询对话状态，直到状态为 "completed"
+        async function pollChat(chat_id, conversation_id) {
+            const MAX_WAIT_TIME = 10;  // 秒
+            const SLEEP_INTERVAL = 1000; // 毫秒
+            const startTime = Date.now();
+            const headers = {
+                "Authorization": "Bearer " + API_TOKEN,
+                "Content-Type": "application/json"
+            };
+            const baseUrl = "https://api.coze.cn/v3/chat/retrieve";
+            const params = new URLSearchParams({
+                chat_id: chat_id,
+                conversation_id: conversation_id
+            });
+            while ((Date.now() - startTime) / 1000 < MAX_WAIT_TIME) {
+                try {
+                    const response = await fetch(baseUrl + "?" + params.toString(), {
+                        method: "GET",
+                        headers: headers
+                    });
+                    const data = await response.json();
+                    if (data.code !== 0) {
+                        console.error("获取对话状态失败：" + data.msg);
+                        return false;
+                    }
+                    if (data.data && data.data.status === "completed") {
+                        console.log("对话已完成");
+                        return true;
+                    }
+                } catch (e) {
+                    console.error("轮询对话状态异常：", e);
+                    return false;
+                }
+                await new Promise(resolve => setTimeout(resolve, SLEEP_INTERVAL));
+            }
+            console.error("轮询超时");
+            return false;
+        }
+
+        // 获取对话消息列表，并提取 answer 消息内容
+        async function getChatMessages(chat_id, conversation_id) {
+            const headers = {
+                "Authorization": "Bearer " + API_TOKEN
+            };
+            const baseUrl = "https://api.coze.cn/v3/chat/message/list";
+            const params = new URLSearchParams({
+                chat_id: chat_id,
+                conversation_id: conversation_id
+            });
+            try {
+                const response = await fetch(baseUrl + "?" + params.toString(), {
+                    method: "GET",
+                    headers: headers
+                });
+                const data = await response.json();
+                if (data.code !== 0) {
+                    console.error("获取对话消息失败：" + data.msg);
+                    return null;
+                }
+                const messages = data.data;
+                for (let msg of messages) {
+                    if (msg.type === "answer" && msg.role === "assistant") {
+                        return msg.content;
+                    }
+                }
+                return null;
+            } catch (e) {
+                console.error("获取对话消息异常：", e);
+                return null;
+            }
+        }
+
+        // 整个流程：发起对话、发起聊天、轮询状态、获取消息并显示
+        async function generateReview() {
+            document.getElementById('review-text').innerText = "生成中...";
+            const chat_id = await startChat();
+            if (!chat_id) {
+                document.getElementById('review-text').innerText = "生成失败，请稍后重试！";
+                return;
+            }
+            const pollSuccess = await pollChat(chat_id, conversation_id);
+            if (!pollSuccess) {
+                document.getElementById('review-text').innerText = "生成失败，请稍后重试！";
+                return;
+            }
+            const answer = await getChatMessages(chat_id, conversation_id);
+            if (answer) {
+                document.getElementById('review-text').innerText = answer;
+            } else {
                 document.getElementById('review-text').innerText = "生成失败，请稍后重试！";
             }
         }
@@ -61,11 +200,10 @@
 
         // 重新生成评价
         function generateNew() {
-            document.getElementById('review-text').innerText = "生成中...";
             generateReview();
         }
 
-        // 页面加载时自动生成
+        // 页面加载时自动生成评价
         window.onload = generateReview;
     </script>
 </body>
