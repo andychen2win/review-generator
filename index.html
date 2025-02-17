@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>评价生成器</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #review-text { margin: 20px auto; padding: 15px; max-width: 500px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>扫码获取评价</h1>
+    <div id="review-text">生成中...</div>
+    <button onclick="copyText()">复制评价</button>
+    <button onclick="generateNew()">换一条</button>
+
+    <script>
+        // 调用Coze API生成评价（替换 YOUR_COZE_API_URL 为你的真实API地址）
+        async function generateReview() {
+            try {
+                const response = await fetch('YOUR_COZE_API_URL', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: "生成一条自然真实的商户评价" })
+                });
+                const data = await response.json();
+                document.getElementById('review-text').innerText = data.review;
+            } catch (error) {
+                document.getElementById('review-text').innerText = "生成失败，请稍后重试！";
+            }
+        }
+
+        // 复制文本到剪贴板
+        function copyText() {
+            const text = document.getElementById('review-text').innerText;
+            navigator.clipboard.writeText(text).then(() => alert('已复制！'));
+        }
+
+        // 重新生成评价
+        function generateNew() {
+            document.getElementById('review-text').innerText = "生成中...";
+            generateReview();
+        }
+
+        // 页面加载时自动生成
+        window.onload = generateReview;
+    </script>
+</body>
+</html>
