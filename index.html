@@ -1,11 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <!-- 添加视口设置，适配手机屏幕 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>评价生成器</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #review-text { margin: 20px auto; padding: 15px; max-width: 500px; border: 1px solid #ddd; border-radius: 5px; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em; /* 稍大字体 */
+            line-height: 1.5;
+        }
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            margin: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+        #review-text {
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 600px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1.3em;
+            word-wrap: break-word;
+            background: #f9f9f9;
+        }
     </style>
 </head>
 <body>
@@ -17,7 +48,7 @@
     <script>
         // 配置参数
         const API_TOKEN = "pat_bG62pnXg3ytvYA40Xfsfj0gzRSorwSodmLb3GgxlTKzKF73FQQaE8fWVZvUetEQv";
-        const BOT_ID = "7472453094316752931";  // 请替换为你的实际 bot id
+        const BOT_ID = "YOUR_BOT_ID";  // 请替换为你的实际 bot id
         const USER_ID = "demo";        // 可根据需要修改
 
         // 全局保存会话ID
