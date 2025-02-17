@@ -37,6 +37,19 @@
             word-wrap: break-word;
             background: #f9f9f9;
         }
+        /* Toast 样式 */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-size: 1em;
+        }
     </style>
 </head>
 <body>
@@ -47,8 +60,8 @@
 
     <script>
         // 配置参数
-        const API_TOKEN = "pat_Mx71xvPeycpOSy5ZSuQzcTDEv8yxF3RHS3fq3Opu6Fm2B0HdBhvZsup8KTqmyNxh";
-        const BOT_ID = "7472453094316752931";  // 请替换为你的实际 bot id
+        const API_TOKEN = "pat_bG62pnXg3ytvYA40Xfsfj0gzRSorwSodmLb3GgxlTKzKF73FQQaE8fWVZvUetEQv";
+        const BOT_ID = "YOUR_BOT_ID";  // 请替换为你的实际 bot id
         const USER_ID = "demo";        // 可根据需要修改
 
         // 全局保存会话ID
@@ -223,10 +236,27 @@
             }
         }
 
-        // 复制文本到剪贴板
+        // 显示临时提示信息（自动消失）
+        function showToast(message, duration = 2000) {
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, duration);
+        }
+
+        // 复制文本到剪贴板（显示自动消失提示）
         function copyText() {
             const text = document.getElementById('review-text').innerText;
-            navigator.clipboard.writeText(text).then(() => alert('已复制！'));
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    showToast("已复制！");
+                })
+                .catch(() => {
+                    showToast("复制失败！");
+                });
         }
 
         // 重新生成评价
