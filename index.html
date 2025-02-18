@@ -217,7 +217,7 @@
 
         // 整个流程：发起对话、发起聊天、轮询状态、获取消息并显示
         async function generateReview() {
-            document.getElementById('review-text').innerText = "还没写完，稍等...";
+            document.getElementById('review-text').innerText = "正在努力写，稍等片刻...";
             const chat_id = await startChat();
             if (!chat_id) {
                 document.getElementById('review-text').innerText = "撰写失败，请稍后重试！";
