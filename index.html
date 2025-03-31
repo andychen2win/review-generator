@@ -220,19 +220,19 @@
             document.getElementById('review-text').innerText = "正在努力写，稍等片刻...";
             const chat_id = await startChat();
             if (!chat_id) {
-                document.getElementById('review-text').innerText = "撰写失败，请稍后重试！";
+                document.getElementById('review-text').innerText = "撰写失败，请稍后重试1！";
                 return;
             }
             const pollSuccess = await pollChat(chat_id, conversation_id);
             if (!pollSuccess) {
-                document.getElementById('review-text').innerText = "撰写失败，请稍后重试！";
+                document.getElementById('review-text').innerText = "撰写失败，请稍后重试2！";
                 return;
             }
             const answer = await getChatMessages(chat_id, conversation_id);
             if (answer) {
                 document.getElementById('review-text').innerText = answer;
             } else {
-                document.getElementById('review-text').innerText = "撰写失败，请稍后重试！";
+                document.getElementById('review-text').innerText = "撰写失败，请稍后重试3！";
             }
         }
 
